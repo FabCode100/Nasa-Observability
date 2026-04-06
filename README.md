@@ -1,99 +1,119 @@
-# 🔭 NASA Observability: Stellar Anomaly Detection
+# 🌌 🔭 Universal Observability: From Space to Industry
 
-![astrophysics_banner](https://raw.githubusercontent.com/username/repo/main/astrophysics_banner.png) 
-*(Nota: O banner gerado está na sua pasta de artifacts local)*
+![universal_observability_banner](https://raw.githubusercontent.com/username/repo/main/banner.png) 
+*(Nota: O design visual deste projeto foi atualizado para suportar observabilidade de sistemas críticos em múltiplos domínios, com foco em alta fidelidade e interpretabilidade)*
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![NasaData](https://img.shields.io/badge/Data-Kepler_Mission-orange?logo=nasa&logoColor=white)](https://archive.stsci.edu/kepler/)
-[![Lightkurve](https://img.shields.io/badge/Library-Lightkurve-purple)](https://docs.lightkurve.org/)
-[![MachineLearning](https://img.shields.io/badge/Algorithm-Isolation_Forest-green)](https://scikit-learn.org/)
+[![IndustrialData](https://img.shields.io/badge/Data-Predictive_Maintenance-red?logo=factory&logoColor=white)](https://archive.ics.uci.edu/ml/datasets/AI4I+2020+Predictive+Maintenance+Dataset)
+[![ML](https://img.shields.io/badge/AI-Explainable_SHAP-green)](https://shap.readthedocs.io/)
 
-## 🌌 Visão Geral do Universo
-Este projeto de **Trabalho de Conclusão de Curso (TCC)** foca na análise automatizada de dados fotométricos capturados pelo telescópio espacial **Kepler**. Utilizando técnicas avançadas de Ciência de Dados e Aprendizado de Máquina, o sistema é capaz de identificar comportamentos estelares atípicos — desde exoplanetas ocultos até estrelas com variabilidade extrema.
+## 🛰️ Visão Geral do Projeto
+Este **Trabalho de Conclusão de Curso (TCC)** propõe uma infraestrutura de **Observabilidade Universal**. O sistema prova que as mesmas bases matemáticas (PCA, Isolation Forest, K-Means) utilizadas para detectar anomalias em estrelas distantes (Telescópio Kepler) podem ser aplicadas com alta fidelidade na **Manutenção Preditiva Industrial**.
 
-A missão principal é transformar curvas de luz complexas em insights científicos acionáveis, automatizando a detecção de anomalias que poderiam passar despercebidas por métodos tradicionais.
-
----
-
-## 🚀 Arquitetura da Missão
-
-O pipeline é dividido em cinco estágios fundamentais:
-
-### 1. 🛰️ Coleta de Dados (Data Collector)
-Utiliza a biblioteca `Lightkurve` e o serviço `Astroquery` para extrair dados brutos (KIC IDs) diretamente do arquivo **MAST (Mikulski Archive for Space Telescopes)**.
-
-### 2. 🧪 Purificação Orbital (Preprocessing)
-Limpeza sistemática dos dados:
-- Remoção de *outliers* (limites de sigma).
-- Correção de tendências (*flattening*).
-- Normalização de fluxo para comparação equitativa entre estrelas.
-
-### 3. 📑 Engenharia de Características (Feature Engineering)
-Extração de parâmetros fotométricos vitais:
-- **Desvio Padrão (Std):** Intensidade da variabilidade.
-- **Range:** Amplitude total do sinal.
-- **Skewness & Kurtosis:** Morfologia da curva de luz.
-- **Standard Error:** Confiabilidade das medições.
-
-### 4. 🧠 Motor de IA (Machine Learning)
-Uma abordagem híbrida para máxima precisão:
-- **Isolation Forest:** Nosso radar principal de anomalias, isolando pontos que divergem estatisticamente da massa.
-- **K-Means Clustering:** Agrupa estrelas por similaridade, permitindo criar hipóteses científicas para cada cluster (ex: Variáveis Radiais, Binárias Eclipsantes).
-- **PCA (Análise de Componentes Principais):** Redução de dimensionalidade para visualização de alta fidelidade em 2D/3D.
-
-### 5. 📊 Painel de Controle (Dashboard)
-Interface interativa em **Streamlit** para visualização e exploração científica dos resultados.
+O projeto opera em dois hubs especializados:
+1.  **🌌 Stellar Hub**: Detecção de anomalias fotométricas em dados da NASA (Kepler).
+2.  **🏭 Camaçari Hub**: Monitoramento de ativos industriais com diagnóstico de falhas em tempo real e XAI.
 
 ---
 
-## 🛠️ Iniciando a Operação
+## 🚀 Centro de Comando (Dashboard 6-Chart Suite)
+O painel foi modernizado para o padrão acadêmico/profissional (NASA Design System), apresentando uma suíte de 6 visualizações críticas:
 
-### Pré-requisitos
-Certifique-se de ter o Python 3.10 ou superior instalado.
+- **⚙️ Telemetria Interativa**: Análise temporal de sensores com janela deslizante de alta performance.
+- **🔍 Espaço Latente (PCA Anomaly)**: Projeção 2D das coordenadas principais para identificação de clusters de risco.
+- **🔍 Diagnóstico Latente (PCA Clustering)**: Agrupamento não supervisionado de comportamentos operacionais (K-Means).
+- **📊 Sensores Signature (Radar)**: Comparativo da "impressão digital" do ativo atual em relação à média estável da planta/universo.
+- **📉 Perfil de Score (IF)**: Histograma da distribuição estatística de anomalias em todo o dataset.
+- **🧊 Espaço Operacional 3D**: Visualização volumétrica (Ex: Torque x RPM x Temp) para identificação de zonas de colapso.
 
-### 1. Clonar e Instalar Dependências
+---
+
+## 🧠 Inteligência e Explicabilidade (XAI)
+O núcleo do projeto utiliza **Explainable AI (SHAP)** para transformar predições de "caixa-preta" em diagnósticos acionáveis:
+- **Relatório Automatizado**: O sistema gera um laudo técnico para cada ativo/estrela.
+- **Root Cause Analysis**: Identificação dos 3 principais vetores (sensores ou métricas fotométricas) que justificam o alerta de anomalia.
+
+---
+
+## 🛠️ Instalação e Operação
+
+### 1. Preparar o Ambiente
 ```bash
-# Clone o projeto
-git clone https://github.com/seu-usuario/Nasa-Observability.git
-cd Nasa-Observability
-
-# Instale as bibliotecas necessárias
+git clone https://github.com/seu-usuario/Universal-Observability.git
+cd Universal-Observability
 pip install -r requirements.txt
 ```
 
-### 2. Executar o Pipeline
+### 2. Executar o Ciclo de Dados
 ```bash
+# Processe os dados (baixa dataset, treina modelos e gera analytics)
+# Agora com suporte a download paralelo (n_jobs=4)
 python main.py
-```
-Isso processará as estrelas alvo configuradas em `config.py` e gerará os arquivos de resultados.
 
-### 3. Abrir o Dashboard
-```bash
+# Lance a estação de visualização
 streamlit run dashboard.py
 ```
 
----
-
-## 📂 Organização das Pastas (Payload System)
-
+### 3. 🐳 Implantação com Docker (Recomendado)
+Para uma experiência "plug-and-play" sem configurar ambientes locais:
 ```bash
-├── 📁 data/             # Dados brutos das missões
-├── 📁 pipeline/         # Núcleo da lógica (collector, models, extractor)
-├── 📁 results/          # Saídas do pipeline de IA e JSONs de resultados
-├── 📄 main.py           # Executivo principal do sistema
-├── 📄 dashboard.py      # Estação de visualização Streamlit
-├── 📄 config.py         # Centro de comando (parâmetros e constantes)
-└── 📄 requirements.txt  # Lista de suplementos (bibliotecas)
+# 1. Subir container (Dashboard + Ambiente)
+docker-compose up --build
+
+# 2. (Opcional) Rodar o pipeline dentro do Docker se quiser atualizar dados:
+docker exec -it universal-observability python main.py
+```
+O painel estará disponível em: `http://localhost:8501`
+
+### 4. Configurar Domínio
+Edite `config.py` para alternar entre os ambientes:
+```python
+DOMAIN_ACTIVE = 'INDUSTRIAL'  # Opções: 'SPACE', 'INDUSTRIAL'
 ```
 
 ---
 
-## 🔭 Metadados do Telescópio
-- **Instrumentos principais:** `Isolation Forest`, `K-means`, `Lightkurve`, `Plotly`.
-- **Foco Científico:** Detecção de transições, variabilidade e anomalias transitórias em estrelas KIC.
+## 📂 Arquitetura do Pipeline
+```bash
+├── 📁 pipeline/         # Lógica modular
+│   ├── data_collector.py  # Acesso a APIs NASA e UCI
+│   ├── preprocessor.py    # Limpeza e Harmonização
+│   ├── feature_engineer.py # Métricas de domínio (ex: ΔT, Mechanical Power)
+│   └── models.py          # Motores IA (AnomalyDetector & PredictiveModel)
+├── 📄 main.py           # Orquestrador Batch
+├── 📄 dashboard.py      # Estação de Visualização Streamlit
+├── 📄 config.py         # Centro de Variáveis Globais
+├── 📄 defense_argument.md # Argumentação para banca
+└── 📁 tests/           # Suíte de Testes Unitários (Pytest)
+```
+
+---
+
+## ✅ Qualidade e Testes
+
+O projeto utiliza **Pytest** para garantir a integridade matemática e funcional do pipeline.
+
+### 1. Rodar Testes Localmente
+```bash
+pytest --cov=pipeline tests/
+```
+
+### 2. Logs Modernos (Loguru)
+Os logs do sistema agora utilizam o framework **Loguru**, oferecendo:
+- **Cores**: Melhor identificação de níveis (INFO, WARNING, ERROR) no terminal.
+- **Rotação**: Logs arquivos são rotacionados quando atingem 10MB.
+- **Retenção**: Mantemos os últimos 10 dias de execução compactados em `.zip`.
+- **Localização**: `/logs/pipeline_YYYY-MM-DD.log`.
+
+### 3. Integração Contínua (CI)
+Toda mudança é validada via **GitHub Actions**, que executa:
+- Testes unitários com cobertura.
+- Verificação de Linting (Flake8).
+- Validação do build do Docker.
 
 ---
 
 <p align="center">
-  <i>"Ad Astra Per Aspera — Para as estrelas através das dificuldades."</i>
+  <i>"Das estrelas para o chão de fábrica — Observabilidade sem fronteiras."</i>
 </p>

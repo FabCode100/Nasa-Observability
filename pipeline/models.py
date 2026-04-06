@@ -6,12 +6,80 @@ Modelos de detecção de anomalias (Isolation Forest, K-Means, PCA)
 """
 
 import numpy as np
-from sklearn.ensemble import IsolationForest
+from sklearn.ensemble import IsolationForest, RandomForestClassifier
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_score
-from typing import Dict, Optional
+from typing import Dict, Optional, List
+import shap
+try:
+    from imblearn.over_sampling import SMOTE
+except ImportError:
+    SMOTE = None
+
+# ... (rest of AnomalyDetector)
+# ...
+
+class PredictiveMaintenanceModel:
+    """
+    Modelo de Manutenção Preditiva com diagnóstico de falhas.
+    
+    Arquitetura:
+    1. Isolation Forest: Detecção não-supervisionada de anomalias (anomalia vs normal).
+    2. Random Forest: Classificação supervisionada dos modos de falha (diagnostic).
+    3. SHAP: Explicação local para o motivo da falha.
+    """
+
+    def __init__(self, failure_modes: List[str] = None):
+        self.failure_modes = failure_modes or ["TWF", "HDF", "PWF", "OSF", "RNF"]
+        self.scaler = StandardScaler()
+        self.isolation_forest = IsolationForest(contamination=0.04, random_state=42)
+        self.classifier = RandomForestClassifier(n_estimators=100, random_state=42)
+        self.explainer = None
+
+    def fit(self, X: np.ndarray, y: np.ndarray, y_diagnostics: np.ndarray):
+        """
+        Treina o modelo de anomalia e o classificador de diagnóstico.
+        """
+        X_scaled = self.scaler.fit_transform(X)
+        self.isolation_forest.fit(X_scaled)
+        
+        # Treinar classificador para diagnóstico
+        # Requer balanceamento (SMOTE) se disponível, pois as falhas são raras
+        if SMOTE is not None:
+             sm = SMOTE(random_state=42)
+             X_sm, y_sm = sm.fit_resample(X_scaled, y_diagnostics)
+             self.classifier.fit(X_sm, y_sm)
+        else:
+             self.classifier.fit(X_scaled, y_diagnostics)
+             
+        # Inicializar o SHAP TreeExplainer
+        self.explainer = shap.TreeExplainer(self.classifier)
+        
+        return self
+
+    def predict(self, X: np.ndarray) -> Dict:
+        """
+        Retorna anomalia, diagnóstico e explicação local.
+        """
+        X_scaled = self.scaler.transform(X)
+        is_anomaly = self.isolation_forest.predict(X_scaled) == -1
+        
+        # Diagnóstico (maior probabilidade de falha)
+        diag_probs = self.classifier.predict_proba(X_scaled)[0]
+        failure_idx = np.argmax(diag_probs)
+        failure_mode = self.failure_modes[failure_idx] if failure_idx < len(self.failure_modes) else "N/A"
+        
+        # SHAP Values para a explicação
+        shap_values = self.explainer.shap_values(X_scaled)[failure_idx]
+        
+        return {
+            "is_anomaly": bool(is_anomaly[0]),
+            "diagnostic": failure_mode,
+            "diagnostic_confidence": float(diag_probs[failure_idx]),
+            "shap_values": shap_values[0].tolist()
+        }
 
 
 class AnomalyDetector:
@@ -88,7 +156,13 @@ class AnomalyDetector:
 
         # 5. Silhouette Score (qualidade do clustering)
         if len(np.unique(self.cluster_labels)) > 1:
-            self.silhouette = silhouette_score(self.X_scaled, self.cluster_labels)
+            # BUGFIX: Para datasets grandes (> 2000), o cálculo da matriz de 
+            # distância (N x N) causa MemoryError. Usar amostragem agressiva.
+            if len(self.X_scaled) > 2000:
+                indices = np.random.choice(len(self.X_scaled), 2000, replace=False)
+                self.silhouette = silhouette_score(self.X_scaled[indices], self.cluster_labels[indices])
+            else:
+                self.silhouette = silhouette_score(self.X_scaled, self.cluster_labels)
         else:
             self.silhouette = 0.0
 

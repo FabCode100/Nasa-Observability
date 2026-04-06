@@ -35,14 +35,15 @@ class NumpyEncoder(json.JSONEncoder):
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import config
-from pipeline.data_collector import StellarDataCollector
-from pipeline.preprocessor import LightCurvePreprocessor
+from pipeline.data_collector import StellarDataCollector, IndustrialDataCollector
+from pipeline.preprocessor import LightCurvePreprocessor, IndustrialPreprocessor
 from pipeline.feature_engineer import (
     PhotometricFeatureExtractor,
     generate_simulated_features,
     FEATURE_NAMES,
+    IndustrialFeatureEngineer,
 )
-from pipeline.models import AnomalyDetector
+from pipeline.models import AnomalyDetector, PredictiveMaintenanceModel
 
 
 def print_header(text: str):
@@ -87,20 +88,18 @@ def run_pipeline():
     target_data["categoria"] = "ALVO"
 
     # Baixar estrelas de referência
-    reference_stars = []
+    # Baixar estrelas de referência em lote (Paralelo)
+    all_ref_star_manifest = []
     for categoria, stars in config.REFERENCE_STARS.items():
-        print(f"\n  -- Referencia: {categoria} --")
         for star_info in stars:
-            star_info_copy = dict(star_info)
-            star_info_copy["categoria"] = categoria
-            data = collector.download_lightcurve(
-                kic_id=star_info["kic_id"],
-                quarter=star_info.get("quarter", 16),
-            )
-            if data is not None:
-                data["nome"] = star_info.get("nome", star_info["kic_id"])
-                data["categoria"] = categoria
-                reference_stars.append(data)
+            s = dict(star_info)
+            s["categoria"] = categoria
+            all_ref_star_manifest.append(s)
+
+    print(f"\n  -- Baixando {len(all_ref_star_manifest)} estrelas de referência em paralelo --")
+    reference_stars = collector.download_batch(all_ref_star_manifest, n_jobs=4)
+
+    print(f"\n    -> Total de estrelas reais coletadas: {1 + len(reference_stars)}")
 
     print(f"\n    -> Total de estrelas reais coletadas: {1 + len(reference_stars)}")
 
@@ -286,5 +285,93 @@ def run_pipeline():
     return results
 
 
+def run_industrial_pipeline():
+    """Executa o pipeline de Manutenção Preditiva (Dataset AI4I 2020)."""
+
+    print_header("PIPELINE DE MANUTENCAO PREDITIVA - CAMAÇARI")
+    print("  Dataset AI4I 2020 / UCI")
+    print("  Isolation Forest + Random Forest + SHAP")
+    print(f"{'=' * 60}")
+
+    # 1. Coleta de dados
+    print_step(1, 4, "Coletando dataset industrial...")
+    collector = IndustrialDataCollector(cache_dir=config.CACHE_DIR)
+    df_raw = collector.download_dataset(config.INDUSTRIAL_PARAMS["dataset_url"])
+    print(f"    -> Dataset carregado: {df_raw.shape[0]} linhas, {df_raw.shape[1]} colunas")
+
+    # 2. Pré-processamento
+    print_step(2, 4, "Limpando e codificando dados...")
+    preprocessor = IndustrialPreprocessor(failure_modes=config.INDUSTRIAL_PARAMS["failure_modes"])
+    df_clean = preprocessor.process(df_raw)
+    print(f"    -> Dataset limpo: {df_clean.shape[0]} linhas")
+
+    # 3. Engenharia de Features
+    print_step(3, 4, "Calculando indicadores (Delta T, Potencia)...")
+    engineer = IndustrialFeatureEngineer()
+    df_feat = engineer.transform(df_clean)
+    
+    # Preparar matrizes para o modelo
+    feature_cols = config.INDUSTRIAL_PARAMS["features"] + ["Type", "Temp_Diff", "Power"]
+    X = df_feat[feature_cols].values
+    y = df_feat[config.INDUSTRIAL_PARAMS["target"]].values
+    
+    # Criar label multiclasse para o diagnóstico
+    y_diag = np.zeros(len(df_feat))
+    for i, mode in enumerate(config.INDUSTRIAL_PARAMS["failure_modes"]):
+        y_diag[df_feat[mode] == 1] = i + 1
+    
+    print(f"    -> Features preparadas: {X.shape[1]} variaveis")
+
+    # 4. Modelagem e Diagnóstico
+    print_step(4, 4, "Treinando modelos e gerando analiticos avançados (PCA/Clusters/SHAP)...")
+    
+    # 4.1 Modelo Central (Diagnóstico)
+    model = PredictiveMaintenanceModel(failure_modes=["Normal"] + config.INDUSTRIAL_PARAMS["failure_modes"])
+    model.fit(X, y, y_diag)
+    
+    # 4.2 Detector de Anomalias (Espaço Latente e Clusters)
+    # Reutilizando a classe AnomalyDetector (originalmente do Space) para consistência matemática
+    detector = AnomalyDetector()
+    detector.fit(X)
+    summary_adv = detector.get_summary()
+
+    # 5. Persistir resultados
+    results = {
+        "domain": "INDUSTRIAL",
+        "data": df_feat.to_dict(orient="records"),
+        "feature_cols": feature_cols,
+        "results_summary": {
+            "n_total": len(df_feat),
+            "n_failures": int(y.sum()),
+            "anomaly_rate": float(y.mean()),
+            "silhouette_score": summary_adv["silhouette_score"],
+            "pca_variance": summary_adv["pca_variance"]
+        },
+        "analytics": {
+            "pca_coords": detector.X_pca.tolist(),
+            "cluster_labels": detector.cluster_labels.tolist(),
+            "if_scores": detector.if_scores.tolist(),
+            "if_preds": detector.if_predictions.tolist()
+        },
+        "model": model # Salvar o objeto do modelo para SHAP no dashboard
+    }
+    
+    results_path = os.path.join(config.RESULTS_DIR, "industrial_results.pkl")
+    with open(results_path, "wb") as f:
+        pickle.dump(results, f)
+        
+    print(f"\n    -> Resultados industriais completos salvos em: {results_path}")
+    print(f"    -> Ativos Analisados: {len(df_feat)}")
+    print(f"    -> Variancia PCA (PC1+PC2): {sum(summary_adv['pca_variance']):.1%}")
+    print(f"\n{'=' * 60}")
+    print("  Dashboard Industrial Pronto: execute  streamlit run dashboard.py")
+    print(f"{'=' * 60}\n")
+
+    return results
+
+
 if __name__ == "__main__":
-    run_pipeline()
+    if hasattr(config, "DOMAIN_ACTIVE") and config.DOMAIN_ACTIVE == "INDUSTRIAL":
+        run_industrial_pipeline()
+    else:
+        run_pipeline()

@@ -1,0 +1,27 @@
+# 🐳 Docker-Compose — Universal Observability (Stellar & Industrial)
+# Execute com: docker-compose up --build
+
+version: '3.8'
+
+services:
+  analyzer-app:
+    build: .
+    container_name: universal-observability
+    ports:
+      - "8501:8501" # Mapeamento da porta local para a porta do Streamlit
+    volumes:
+      - .:/app # Sincroniza o código local (para facilitar desenvolvimento)
+      - ./data:/app/data # Mapeia a pasta de dados (persiste cache NASA)
+      - ./results:/app/results # Mapeia a pasta de resultados (persiste modelos treinados)
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - PYTHONUNBUFFERED=1
+    stdin_open: true # Permite interatividade se necessário
+    tty: true
+    restart: unless-stopped
+
+# Notas de uso:
+# 1. Se quiser rodar o pipeline (main.py) dentro do Docker:
+#    docker exec -it universal-observability python main.py
+# 2. O Dashboard abre em: http://localhost:8501

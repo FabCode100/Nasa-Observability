@@ -8,6 +8,52 @@ Extração de features fotométricas de curvas de luz
 import numpy as np
 from scipy.stats import skew
 from typing import Dict, List
+import pandas as pd
+
+# ... (rest of Stellar Feature Info)
+# ...
+
+INDUSTRIAL_FEATURE_INFO = {
+    "Process temperature [K]": {"nome": "Temp. Processo", "unidade": "K"},
+    "Air temperature [K]": {"nome": "Temp. Ar", "unidade": "K"},
+    "Rotational speed [rpm]": {"nome": "Velocidade", "unidade": "RPM"},
+    "Torque [Nm]": {"nome": "Torque", "unidade": "Nm"},
+    "Tool wear [min]": {"nome": "Desgaste", "unidade": "min"},
+    "Temp_Diff": {"nome": "ΔT (Process-Air)", "unidade": "K"},
+    "Power": {"nome": "Potência Mecânica", "unidade": "W"},
+}
+
+class IndustrialFeatureEngineer:
+    """
+    Engenharia de features para o dataset de Manutenção Preditiva.
+    Calcula indicadores físicos derivados:
+    1. Temp_Diff: Diferença entre temperatura do processo e do ar.
+    2. Power: Potência (Velocidade * Torque).
+    """
+
+    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Adiciona features calculadas ao dataframe.
+        """
+        if df.empty:
+            return df
+
+        df_feat = df.copy()
+
+        # 1. Diferença de temperatura
+        if "Process temperature [K]" in df_feat.columns and "Air temperature [K]" in df_feat.columns:
+            df_feat["Temp_Diff"] = (
+                df_feat["Process temperature [K]"] - df_feat["Air temperature [K]"]
+            )
+
+        # 2. Potência Mecânica (P = τ * ω)
+        # ω (rad/s) = rpm * 2π / 60
+        if "Rotational speed [rpm]" in df_feat.columns and "Torque [Nm]" in df_feat.columns:
+            df_feat["Power"] = (
+                df_feat["Rotational speed [rpm]"] * (2 * np.pi / 60) * df_feat["Torque [Nm]"]
+            )
+
+        return df_feat
 
 
 # Nome e descrição de cada feature para documentação / dashboard

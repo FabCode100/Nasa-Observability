@@ -6,7 +6,45 @@ Limpeza e normalização de curvas de luz
 """
 
 import numpy as np
-from typing import Dict, Optional
+import pandas as pd
+from typing import Dict, Optional, List
+# ... (rest of LightCurvePreprocessor)
+# ...
+
+class IndustrialPreprocessor:
+    """
+    Pré-processamento para o dataset AI4I 2020.
+    """
+
+    def __init__(self, failure_modes: List[str] = None):
+        self.failure_modes = failure_modes or ["TWF", "HDF", "PWF", "OSF", "RNF"]
+
+    def process(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Limpa e organiza o dataframe industrial.
+        """
+        if df.empty:
+            return df
+
+        # 1. Remover colunas desnecessárias (UDI e Product ID)
+        cols_to_drop = ["UDI", "Product ID"]
+        df_clean = df.drop(columns=[c for c in cols_to_drop if c in df.columns])
+
+        # 2. Codificação da coluna 'Type' (L, M, H)
+        # L = Low (50%), M = Medium (30%), H = High (20%)
+        type_map = {"L": 0, "M": 1, "H": 2}
+        if "Type" in df_clean.columns:
+            df_clean["Type"] = df_clean["Type"].map(type_map)
+
+        # 3. Garantir que as colunas de falha sejam int
+        for mode in self.failure_modes:
+            if mode in df_clean.columns:
+                df_clean[mode] = df_clean[mode].astype(int)
+
+        # 4. Remover duplicatas
+        df_clean = df_clean.drop_duplicates()
+
+        return df_clean
 
 
 class LightCurvePreprocessor:

@@ -7,6 +7,9 @@ Detecção de Anomalias Estelares em Dados do Telescópio Kepler
 
 import os
 
+# ── Configuração de Domínio ───────────────────────────────
+DOMAIN_ACTIVE = 'INDUSTRIAL'  # Opções: 'SPACE', 'INDUSTRIAL'
+
 # ── Diretórios ────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -138,4 +141,31 @@ THEME = {
     "target":   "#ffa657",  # Laranja (estrela alvo)
     "cluster_colors": ["#58a6ff", "#3fb950", "#ff7b72"],
     "cluster_names":  ["C0: Estáveis", "C1: Variáveis", "C2: Extremas"],
+}
+
+# ── Domínio Industrial (Camaçari) ─────────────────────────
+INDUSTRIAL_PARAMS = {
+    "dataset_url": "https://archive.ics.uci.edu/ml/machine-learning-databases/00601/ai4i2020.csv",
+    "features": [
+        "Air temperature [K]", 
+        "Process temperature [K]", 
+        "Rotational speed [rpm]", 
+        "Torque [Nm]", 
+        "Tool wear [min]"
+    ],
+    "categorical_features": ["Type"],
+    "target": "Machine failure",
+    "failure_modes": ["TWF", "HDF", "PWF", "OSF", "RNF"],
+}
+
+THEME_INDUSTRIAL = {
+    "bg":       "#0f172a",
+    "panel_bg": "#1e293b",
+    "text":     "#f8fafc",
+    "grid":     "#334155",
+    "accent1":  "#38bdf8",  # Sky Blue (Normal)
+    "accent2":  "#fbbf24",  # Amber (Warning)
+    "accent3":  "#ef4444",  # Red (Failure)
+    "target":   "#818cf8",  # Indigo (Selected Asset)
+    "status_colors": ["#38bdf8", "#fbbf24", "#ef4444"],
 }
