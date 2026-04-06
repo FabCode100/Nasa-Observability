@@ -1,0 +1,21 @@
+# ══════════════════════════════════════════════════════════
+# TCC Astrofísica — Detecção de Anomalias Estelares
+# Dependências do projeto
+# ══════════════════════════════════════════════════════════
+
+# Dados astronômicos
+lightkurve>=2.4
+astroquery>=0.4
+
+# Computação científica
+numpy>=1.24
+scipy>=1.10
+pandas>=2.0
+scikit-learn>=1.3
+
+# Visualização interativa
+plotly>=5.18
+streamlit>=1.30
+
+# Utilitários
+tqdm>=4.65
